@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Memories</string>
     <string name="sign_in_failed_error">Failed to sign in</string>
+    <string name="string_today">Today</string>
+    <string name="string_week">This Week</string>
+    <string name="string_month">This Month</string>
 </resources>

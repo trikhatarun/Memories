@@ -6,9 +6,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -30,18 +32,30 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity {
 
     private final int RC_SIGN_IN = 110;
+    @BindView(android.R.id.content)
+    View parentLayout;
     @Nullable
     @BindView(R.id.googleSignInButton)
     SignInButton signInButton;
     @Nullable
     @BindView(R.id.fab)
     FloatingActionButton fab;
+    @Nullable
+    @BindView(R.id.container)
+    ViewPager container;
+    @Nullable
+    @BindView(R.id.tabs)
+    TabLayout tabLayout;
+    @Nullable
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
     private GoogleApiClient googleApiClient;
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setSupportActionBar(toolbar);
 
         GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -58,22 +72,32 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
-                //Todo : Here are the cases where different layouts are inflated for different situations
                 if (user != null) {
                     setContentView(R.layout.activity_main);
                     ButterKnife.bind(MainActivity.this);
-                    View parentLayout = findViewById(android.R.id.content);
+
+                    ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager(), MainActivity.this);
+
+                    if (container != null) {
+                        assert tabLayout != null;
+                        tabLayout.setupWithViewPager(container);
+                        container.setAdapter(adapter);
+
+                    }
+
+                    assert fab != null;
                     fab.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Toast.makeText(MainActivity.this, "clicked fab", Toast.LENGTH_SHORT).show();
+
                         }
                     });
-                    Snackbar.make(parentLayout, "Welcome, " + user.getDisplayName(), Snackbar.LENGTH_LONG);
+                    Snackbar.make(parentLayout, "Welcome, " + user.getDisplayName(), Snackbar.LENGTH_LONG).show();
                 } else {
                     setContentView(R.layout.login_screen);
                     ButterKnife.bind(MainActivity.this);
 
+                    assert signInButton != null;
                     signInButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -106,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (!task.isSuccessful()) {
-                    Snackbar.make(null, getString(R.string.sign_in_failed_error), Snackbar.LENGTH_LONG);
+                    Snackbar.make(parentLayout, getString(R.string.sign_in_failed_error), Snackbar.LENGTH_LONG);
                 }
             }
         });
