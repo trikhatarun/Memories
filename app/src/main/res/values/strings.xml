@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Memories</string>
+    <string name="sign_in_failed_error">Failed to sign in</string>
+</resources>
