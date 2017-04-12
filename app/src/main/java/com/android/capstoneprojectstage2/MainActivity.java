@@ -3,6 +3,7 @@ package com.android.capstoneprojectstage2;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -24,13 +25,15 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 
     private final int RC_SIGN_IN = 110;
-    //Todo 1: We have to bind these buttons where @signInButton is for login and fab is for activity main layout (Check onCreate for more comments)
+    @Nullable
     @BindView(R.id.googleSignInButton)
     SignInButton signInButton;
+    @Nullable
     @BindView(R.id.fab)
     FloatingActionButton fab;
     private GoogleApiClient googleApiClient;
@@ -39,8 +42,6 @@ public class MainActivity extends AppCompatActivity {
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // I have removed ButterKnife.bind(this) from here as we canot bind views before they are inflated
 
         GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -60,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
                 //Todo : Here are the cases where different layouts are inflated for different situations
                 if (user != null) {
                     setContentView(R.layout.activity_main);
+                    ButterKnife.bind(MainActivity.this);
                     View parentLayout = findViewById(android.R.id.content);
                     fab.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -67,10 +69,10 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(MainActivity.this, "clicked fab", Toast.LENGTH_SHORT).show();
                         }
                     });
-                    //Todo 2: This Snackbar is not being displayed
                     Snackbar.make(parentLayout, "Welcome, " + user.getDisplayName(), Snackbar.LENGTH_LONG);
                 } else {
                     setContentView(R.layout.login_screen);
+                    ButterKnife.bind(MainActivity.this);
 
                     signInButton.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -109,29 +111,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
- /*   private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
-        Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
-
-        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        Log.d(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
-
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
-                        if (!task.isSuccessful()) {
-                            Log.w(TAG, "signInWithCredential", task.getException());
-                            Toast.makeText(GoogleSignInActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                        // ...
-                    }
-                });
-    }*/
 
     @Override
     public void onStart() {
