@@ -55,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setSupportActionBar(toolbar);
 
         GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -75,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
                 if (user != null) {
                     setContentView(R.layout.activity_main);
                     ButterKnife.bind(MainActivity.this);
+                    assert toolbar != null;
+                    setSupportActionBar(toolbar);
+                    toolbar.setTitle(getString(R.string.app_name));
 
                     ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager(), MainActivity.this);
 
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
                     fab.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-
+                            //Todo: Add add event later
                         }
                     });
                     Snackbar.make(parentLayout, "Welcome, " + user.getDisplayName(), Snackbar.LENGTH_LONG).show();
