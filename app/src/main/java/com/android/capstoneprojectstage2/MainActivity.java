@@ -91,7 +91,8 @@ public class MainActivity extends AppCompatActivity {
                     fab.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            //Todo: Add add event later
+                            Intent addEventIntent = new Intent(MainActivity.this, AddEventActivity.class);
+                            startActivity(addEventIntent);
                         }
                     });
                     Snackbar.make(parentLayout, "Welcome, " + user.getDisplayName(), Snackbar.LENGTH_LONG).show();

@@ -5,4 +5,13 @@
     <string name="string_week">This Week</string>
     <string name="string_month">This Month</string>
     <string name="occasion_logo_description">Occasion logo</string>
+    <string name="title_hint">Title</string>
+    <string name="event_type_prompt">Choose a category</string>
+    <string name="add_event_label">Add Event</string>
+
+    <string-array name="category_array">
+        <item>Birthday</item>
+        <item>Anniversary</item>
+    </string-array>
+
 </resources>

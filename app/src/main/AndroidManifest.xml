@@ -16,6 +16,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".AddEventActivity"
+            android:excludeFromRecents="true"
+            android:label="@string/add_event_label"
+            android:theme="@android:style/Theme.Dialog" />
     </application>
 
 </manifest>
