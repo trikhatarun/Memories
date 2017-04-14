@@ -19,8 +19,7 @@
         <activity
             android:name=".AddEventActivity"
             android:excludeFromRecents="true"
-            android:label="@string/add_event_label"
-            android:theme="@android:style/Theme.Dialog" />
+            android:label="@string/add_event_label" />
     </application>
 
 </manifest>
