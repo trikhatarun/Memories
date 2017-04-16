@@ -56,10 +56,8 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
     TextView locationTextField;
     private GoogleApiClient googleApiClientInstance;
     private StringBuilder result;
-    private String userEmail;
     private ContentResolver cr;
     private ContentValues values;
-    private Uri resultantUri;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -68,7 +66,6 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
 
         ButterKnife.bind(this);
 
-        userEmail = getIntent().getStringExtra("userEmail");
         cr = getContentResolver();
 
         googleApiClientInstance = new GoogleApiClient.Builder(AddEventActivity.this)
@@ -77,37 +74,38 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
                 .addOnConnectionFailedListener(AddEventActivity.this)
                 .build();
 
-        String title = null;
-        final String occasion;
-
-        EditText eventTitleEditText = eventTitle.getEditText();
-        if (eventTitleEditText != null) {
-            title = eventTitleEditText.getText().toString();
-        }
-        occasion = spinner.getSelectedItem().toString();
-
-        final String finalTitle = title;
         doneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                long calendarId = 3;
-                long startMillis;
-                long endMillis;
-                Calendar beginTime = Calendar.getInstance();
-                beginTime.set(Calendar.YEAR, Calendar.MONTH, Calendar.DATE);
-                startMillis = beginTime.getTimeInMillis();
-                Calendar endTime = Calendar.getInstance();
-                endTime.set(Calendar.YEAR, Calendar.MONTH, Calendar.DATE + 1);
-                endMillis = endTime.getTimeInMillis();
+                EditText eventTitleEditText = eventTitle.getEditText();
+                if (eventTitleEditText != null) {
+                    String title = eventTitleEditText.getText().toString();
+                    if (title.equals("")) {
+                        eventTitle.setError(getString(R.string.empty_title_error));
+                        return;
+                    }
 
-                values = new ContentValues();
-                values.put(Events.DTSTART, startMillis);
-                values.put(Events.DTEND, endMillis);
-                values.put(Events.TITLE, finalTitle);
-                values.put(Events.DESCRIPTION, occasion);
-                values.put(Events.CALENDAR_ID, calendarId);
-                values.put(Events.EVENT_TIMEZONE, String.valueOf(TimeZone.getDefault()));
-                addEvent();
+                    String occasion = spinner.getSelectedItem().toString();
+                    long calendarId = 3;
+                    long startMillis;
+                    long endMillis;
+                    Calendar beginTime = Calendar.getInstance();
+                    beginTime.set(beginTime.get(Calendar.YEAR), beginTime.get(Calendar.MONTH), beginTime.get(Calendar.DATE));
+                    startMillis = beginTime.getTimeInMillis();
+                    Calendar endTime = Calendar.getInstance();
+                    endTime.set(beginTime.get(Calendar.YEAR), beginTime.get(Calendar.MONTH), beginTime.get(Calendar.DATE));
+                    endMillis = endTime.getTimeInMillis();
+
+                    values = new ContentValues();
+                    values.put(Events.DTSTART, startMillis);
+                    values.put(Events.DTEND, endMillis);
+                    values.put(Events.TITLE, title);
+                    values.put(Events.DESCRIPTION, occasion);
+                    values.put(Events.CALENDAR_ID, calendarId);
+                    values.put(Events.EVENT_TIMEZONE, String.valueOf(TimeZone.getDefault().getID()));
+                    values.put(Events.EVENT_LOCATION, String.valueOf(result));
+                    addEvent();
+                }
             }
         });
 
@@ -175,8 +173,12 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
                     MY_PERMISSIONS_REQUEST_WRITE_CALENDAR);
             return;
         }
-        resultantUri = cr.insert(Events.CONTENT_URI, values);
-        Toast.makeText(this, resultantUri.toString(), Toast.LENGTH_SHORT).show();
+        Uri resultantUri = cr.insert(Events.CONTENT_URI, values);
+        if (resultantUri != null) {
+            Log.i(AddEventActivity.class.getSimpleName(), resultantUri.toString());
+            Toast.makeText(this, getString(R.string.event_add_success), Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 
     @Override
@@ -188,7 +190,6 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
                 if ((grantResults.length > 0)
                         && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     addEvent();
-
                 }
             }
 

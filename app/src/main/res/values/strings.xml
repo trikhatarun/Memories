@@ -15,6 +15,8 @@
     <string name="failed_location">Failed to get location</string>
     <string name="location_heading">Celebration location</string>
     <string name="noInternetError">Check Internet Connectivity</string>
+    <string name="empty_title_error">Please enter the title</string>
+    <string name="event_add_success">Event added successfully</string>
 
     <string-array name="category_array">
         <item>Birthday</item>
