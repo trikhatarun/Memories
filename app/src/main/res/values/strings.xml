@@ -9,10 +9,17 @@
     <string name="date_prompt">Select a date</string>
     <string name="event_type_prompt">Choose a category</string>
     <string name="add_event_label">Add Event</string>
+    <string name="save_string">Save</string>
+    <string name="hint_checkIn">Click button on right to Check In</string>
+    <string name="ask_location_string">Please allow location access</string>
+    <string name="failed_location">Failed to get location</string>
+    <string name="location_heading">Celebration location</string>
+    <string name="noInternetError">Check Internet Connectivity</string>
 
     <string-array name="category_array">
         <item>Birthday</item>
         <item>Anniversary</item>
+        <item>Other</item>
     </string-array>
 
 </resources>

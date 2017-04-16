@@ -41,6 +41,8 @@ dependencies {
     compile('com.google.apis:google-api-services-calendar:v3-rev243-1.22.0') {
         exclude group: 'org.apache.httpcomponents'
     }
+    compile 'com.google.android.gms:play-services-location:10.2.1'
+    compile 'pub.devrel:easypermissions:0.2.1'
 
 }
 apply plugin: 'com.google.gms.google-services'

@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         authStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
+                final FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     setContentView(R.layout.activity_main);
                     ButterKnife.bind(MainActivity.this);
@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View v) {
                             Intent addEventIntent = new Intent(MainActivity.this, AddEventActivity.class);
+                            addEventIntent.putExtra("userEmail", user.getEmail());
                             startActivity(addEventIntent);
                         }
                     });
