@@ -88,17 +88,12 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
                     String occasion = spinner.getSelectedItem().toString();
                     long calendarId = 3;
                     long startMillis;
-                    long endMillis;
                     Calendar beginTime = Calendar.getInstance();
                     beginTime.set(beginTime.get(Calendar.YEAR), beginTime.get(Calendar.MONTH), beginTime.get(Calendar.DATE));
                     startMillis = beginTime.getTimeInMillis();
-                    Calendar endTime = Calendar.getInstance();
-                    endTime.set(beginTime.get(Calendar.YEAR), beginTime.get(Calendar.MONTH), beginTime.get(Calendar.DATE));
-                    endMillis = endTime.getTimeInMillis();
 
                     values = new ContentValues();
                     values.put(Events.DTSTART, startMillis);
-                    values.put(Events.DTEND, endMillis);
                     values.put(Events.TITLE, title);
                     values.put(Events.DESCRIPTION, occasion);
                     values.put(Events.CALENDAR_ID, calendarId);
