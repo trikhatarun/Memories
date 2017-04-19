@@ -13,6 +13,12 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 
+import com.android.capstoneprojectstage2.background.EventFetchingJobDispatcher;
+import com.firebase.jobdispatcher.FirebaseJobDispatcher;
+import com.firebase.jobdispatcher.GooglePlayDriver;
+import com.firebase.jobdispatcher.Job;
+import com.firebase.jobdispatcher.Lifetime;
+import com.firebase.jobdispatcher.Trigger;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -26,6 +32,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -113,6 +121,21 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
+
+        final int periodicity = (int) TimeUnit.HOURS.toSeconds(24);
+        final int toleranceInterval = (int) TimeUnit.HOURS.toSeconds(1);
+
+        Job refreshDatabase = dispatcher.newJobBuilder()
+                .setService(EventFetchingJobDispatcher.class)
+                .setRecurring(true)
+                .setTag("Refresh Database")
+                .setLifetime(Lifetime.FOREVER)
+                .setTrigger(Trigger.executionWindow(10, 15))
+                .setReplaceCurrent(true)
+                .build();
+
+        dispatcher.mustSchedule(refreshDatabase);
     }
 
     @Override
@@ -126,8 +149,6 @@ public class MainActivity extends AppCompatActivity {
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
             }
-        } else {
-            Log.e("Error", "Error h be yaha p ghomchu");
         }
     }
 

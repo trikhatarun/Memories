@@ -8,9 +8,9 @@ import android.provider.BaseColumns;
  */
 
 public class EventContract {
-    public static final String CONTENT_AUTHORITY = "com.android.movies";
-    public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
-    public static final String PATH_EVENTS = "events";
+    private static final String CONTENT_AUTHORITY = "com.android.CapstoneProjectStage2";
+    private static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
+    private static final String PATH_EVENTS = "events";
 
     public static final class EventEntry implements BaseColumns {
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_EVENTS).build();
