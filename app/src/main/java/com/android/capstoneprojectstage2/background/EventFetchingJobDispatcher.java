@@ -67,8 +67,6 @@ public class EventFetchingJobDispatcher extends JobService {
                 }
             }
             cursor.close();
-        } else {
-            Log.e("\n\n\nMain: ", "Not received data");
         }
 
         return false;

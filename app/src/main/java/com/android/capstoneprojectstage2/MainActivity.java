@@ -6,8 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -50,12 +48,6 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.fab)
     FloatingActionButton fab;
     @Nullable
-    @BindView(R.id.container)
-    ViewPager container;
-    @Nullable
-    @BindView(R.id.tabs)
-    TabLayout tabLayout;
-    @Nullable
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     private GoogleApiClient googleApiClient;
@@ -84,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 .setRecurring(true)
                 .setTag("Refresh Database")
                 .setLifetime(Lifetime.FOREVER)
-                .setTrigger(Trigger.executionWindow(10, 15))
+                .setTrigger(Trigger.executionWindow(periodicity, periodicity + toleranceInterval))
                 .setReplaceCurrent(true)
                 .build();
 
@@ -102,15 +94,6 @@ public class MainActivity extends AppCompatActivity {
                     assert toolbar != null;
                     setSupportActionBar(toolbar);
                     toolbar.setTitle(getString(R.string.app_name));
-
-                    ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager(), MainActivity.this);
-
-                    if (container != null) {
-                        assert tabLayout != null;
-                        tabLayout.setupWithViewPager(container);
-                        container.setAdapter(adapter);
-
-                    }
 
                     assert fab != null;
                     fab.setOnClickListener(new View.OnClickListener() {
