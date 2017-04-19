@@ -74,6 +74,22 @@ public class MainActivity extends AppCompatActivity {
                 .addApi(Auth.GOOGLE_SIGN_IN_API, googleSignInOptions)
                 .build();
 
+        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
+
+        final int periodicity = (int) TimeUnit.HOURS.toSeconds(24);
+        final int toleranceInterval = (int) TimeUnit.HOURS.toSeconds(1);
+
+        Job refreshDatabase = dispatcher.newJobBuilder()
+                .setService(EventFetchingJobDispatcher.class)
+                .setRecurring(true)
+                .setTag("Refresh Database")
+                .setLifetime(Lifetime.FOREVER)
+                .setTrigger(Trigger.executionWindow(10, 15))
+                .setReplaceCurrent(true)
+                .build();
+
+        dispatcher.mustSchedule(refreshDatabase);
+
         firebaseAuth = FirebaseAuth.getInstance();
 
         authStateListener = new FirebaseAuth.AuthStateListener() {
@@ -121,21 +137,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
 
-        final int periodicity = (int) TimeUnit.HOURS.toSeconds(24);
-        final int toleranceInterval = (int) TimeUnit.HOURS.toSeconds(1);
-
-        Job refreshDatabase = dispatcher.newJobBuilder()
-                .setService(EventFetchingJobDispatcher.class)
-                .setRecurring(true)
-                .setTag("Refresh Database")
-                .setLifetime(Lifetime.FOREVER)
-                .setTrigger(Trigger.executionWindow(10, 15))
-                .setReplaceCurrent(true)
-                .build();
-
-        dispatcher.mustSchedule(refreshDatabase);
     }
 
     @Override

@@ -24,6 +24,8 @@ public class EventFetchingJobDispatcher extends JobService {
     @Override
     public boolean onStartJob(JobParameters job) {
 
+        Log.v("Refresh Database: ", "JOB started" + "\n\n");
+
         ContentResolver contentResolver = getContentResolver();
         contentResolver.delete(EventContract.EventEntry.CONTENT_URI, null, null);
 
@@ -61,7 +63,7 @@ public class EventFetchingJobDispatcher extends JobService {
 
                 Uri insertUri = contentResolver.insert(EventContract.EventEntry.CONTENT_URI, values);
                 if (insertUri != null) {
-                    Log.v("\n\n\n\nMain: ", insertUri.toString() + "\n\n");
+                    Log.v("\n\n\n\nRefresh Database: ", insertUri.toString() + "\n\n");
                 }
             }
             cursor.close();
