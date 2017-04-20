@@ -19,5 +19,6 @@ public class EventContract {
         public static final String EVENT_DESCRIPTION = "description";
         public static final String EVENT_DATE = "date";
         public static final String LOCATION = "location";
+
     }
 }

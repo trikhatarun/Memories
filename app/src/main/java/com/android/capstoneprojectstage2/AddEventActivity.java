@@ -94,6 +94,7 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
 
                     values = new ContentValues();
                     values.put(Events.DTSTART, startMillis);
+                    values.put(Events.DTEND, startMillis);
                     values.put(Events.TITLE, title);
                     values.put(Events.DESCRIPTION, occasion);
                     values.put(Events.CALENDAR_ID, calendarId);
@@ -122,7 +123,7 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        Log.v("Location: ", "Connection suspended");
     }
 
     @Override

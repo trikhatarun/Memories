@@ -32,20 +32,15 @@ public class EventFetchingJobDispatcher extends JobService {
         Calendar cc = Calendar.getInstance();
         int iYear = cc.get(Calendar.YEAR);
         int iMonth = cc.get(Calendar.MONTH);
-        int iDay = 1;
+        int iDay = cc.get(Calendar.DATE);
 
-        long startMillis, endMillis;
+        long startMillis;
         Calendar beginTime = Calendar.getInstance();
         beginTime.set(iYear, iMonth, iDay);
         startMillis = beginTime.getTimeInMillis();
 
-        Calendar endTime = Calendar.getInstance();
-        int daysInMonth = cc.getActualMaximum(Calendar.DAY_OF_MONTH);
-        endTime.set(iYear, iMonth, daysInMonth);
-        endMillis = endTime.getTimeInMillis();
-
-        String selection = "(( " + CalendarContract.Events.DTSTART + " >=? )" + " AND ( " + CalendarContract.Events.DTSTART + " <= ?" + " ) AND ( " + CalendarContract.Events.ALL_DAY + "=?" + "))";
-        String[] selectionArgs = new String[]{String.valueOf(startMillis), String.valueOf(endMillis), String.valueOf(1)};
+        String selection = "(( " + CalendarContract.Events.DTSTART + " ==? )" + " AND ( " + CalendarContract.Events.ALL_DAY + "=?" + "))";
+        String[] selectionArgs = new String[]{String.valueOf(startMillis), String.valueOf(1)};
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
             return false;
         }
@@ -63,7 +58,7 @@ public class EventFetchingJobDispatcher extends JobService {
 
                 Uri insertUri = contentResolver.insert(EventContract.EventEntry.CONTENT_URI, values);
                 if (insertUri != null) {
-                    Log.v("\n\n\n\nRefresh Database: ", insertUri.toString() + "\n\n");
+                    Log.v("Refresh Database: ", insertUri.toString() + "\n\n");
                 }
             }
             cursor.close();
