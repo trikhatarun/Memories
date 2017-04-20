@@ -1,12 +1,10 @@
 package com.android.capstoneprojectstage2;
 
-import android.Manifest;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CalendarContract;
@@ -14,11 +12,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -26,7 +24,6 @@ import android.view.View;
 
 import com.android.capstoneprojectstage2.background.EventFetchingJobDispatcher;
 import com.android.capstoneprojectstage2.data.EventContract;
-import com.android.capstoneprojectstage2.data.EventDbHelper;
 import com.firebase.jobdispatcher.FirebaseJobDispatcher;
 import com.firebase.jobdispatcher.GooglePlayDriver;
 import com.firebase.jobdispatcher.Job;
@@ -56,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private final int RC_SIGN_IN = 110;
     private final int MY_PERMISSIONS_REQUEST_READ_CALENDAR = 117;
+    private final int RETURNING_FROM_ADD_ACTIVITY = 122;
     @BindView(android.R.id.content)
     View parentLayout;
     @Nullable
@@ -122,6 +120,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     toolbar.setTitle(getString(R.string.app_name));
 
                     if (eventsList != null) {
+                        Log.v("RecyclerView: ", "Adapter  set h");
+                        eventsList.setLayoutManager(new LinearLayoutManager(MainActivity.this));
                         eventsList.setAdapter(adapter);
                     }
 
@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         public void onClick(View v) {
                             Intent addEventIntent = new Intent(MainActivity.this, AddEventActivity.class);
                             addEventIntent.putExtra("userEmail", user.getEmail());
-                            startActivity(addEventIntent);
+                            startActivityForResult(addEventIntent, RETURNING_FROM_ADD_ACTIVITY);
                         }
                     });
                     Snackbar.make(parentLayout, "Welcome, " + user.getDisplayName(), Snackbar.LENGTH_LONG).show();
@@ -164,6 +164,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
             }
+        } else {
+            getSupportLoaderManager().restartLoader(LOADER_ID, null, this);
         }
     }
 
@@ -183,21 +185,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void loadData() {
-        EventDbHelper dbHelper = new EventDbHelper(this);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-
-        Cursor cur = db.rawQuery("SELECT COUNT(*) FROM " + EventContract.EventEntry.TABLE_NAME, null);
-        if (cur != null) {
-            cur.moveToFirst();                       // Always one row returned.
-            if (cur.getInt(0) == 0) {               // Zero count means empty table.
-                LOADER_ID = 101;
-                Log.v("Database check: ", "Empty database");
-            } else {
-                LOADER_ID = 102;
-                Log.v("Database check: ", "" + cur.getCount());
-            }
-            cur.close();
-        }
         getSupportLoaderManager().initLoader(LOADER_ID, null, this);
     }
 
@@ -230,55 +217,50 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if (id == 101) {
-            Log.v("Loader: ", "Loader started");
-            ContentResolver contentResolver = getContentResolver();
-            Calendar cc = Calendar.getInstance();
-            int iYear = cc.get(Calendar.YEAR);
-            int iMonth = cc.get(Calendar.MONTH);
-            int iDay = cc.get(Calendar.DATE);
+        Log.v("Loader: ", "Loader started");
+        ContentResolver contentResolver = getContentResolver();
+        contentResolver.delete(EventContract.EventEntry.CONTENT_URI, null, null);
+        Calendar cc = Calendar.getInstance();
+        int iYear = cc.get(Calendar.YEAR);
+        int iMonth = cc.get(Calendar.MONTH);
+        int iDay = cc.get(Calendar.DATE);
 
-            long startMillis;
-            Calendar beginTime = Calendar.getInstance();
-            beginTime.set(iYear, iMonth, iDay);
-            startMillis = beginTime.getTimeInMillis();
-            String selection = CalendarContract.Events.DTSTART + " =?";
-            String[] selectionArgs = new String[]{String.valueOf(startMillis)};
-            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.READ_CALENDAR},
-                        MY_PERMISSIONS_REQUEST_READ_CALENDAR);
-                return null;
-            }
-            Cursor cursor = getApplicationContext().getContentResolver().query(CalendarContract.Events.CONTENT_URI,
-                    new String[]{CalendarContract.Events.TITLE, CalendarContract.Events.DESCRIPTION, CalendarContract.Events.DTSTART, CalendarContract.Events.EVENT_LOCATION}, selection, selectionArgs, null, null);
+        long startMillis, endMillis;
+        Calendar beginTime = Calendar.getInstance();
+        beginTime.set(iYear, iMonth, iDay);
+        startMillis = beginTime.getTimeInMillis();
+        Calendar endTime = Calendar.getInstance();
+        endTime.set(iYear, iMonth, iDay);
+        endMillis = endTime.getTimeInMillis();
+        Cursor cursor = CalendarContract.Instances.query(contentResolver, null, startMillis, endMillis);
+        if (cursor != null) {
+            Log.v("Cursor check Calendar: ", "Valued cursor from calendar with count = " + cursor.getCount());
+            cursor.moveToFirst();
+            Log.v("Cursor first element: ", cursor.toString());
+            for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+                ContentValues values = new ContentValues();
+                values.put(EventContract.EventEntry.EVENT_TITLE, cursor.getString(cursor.getColumnIndex(CalendarContract.Events.TITLE)));
+                values.put(EventContract.EventEntry.EVENT_DESCRIPTION, cursor.getString(cursor.getColumnIndex(CalendarContract.Events.DESCRIPTION)));
+                values.put(EventContract.EventEntry.EVENT_DATE, cursor.getLong(cursor.getColumnIndex(CalendarContract.Events.DTSTART)));
+                values.put(EventContract.EventEntry.LOCATION, cursor.getString(cursor.getColumnIndex(CalendarContract.Events.EVENT_LOCATION)));
 
-            if (cursor != null) {
-                Log.v("Cursor check Calendar: ", "Valued cursor from calendar with count = " + cursor.getCount());
-                cursor.moveToFirst();
-                for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-                    ContentValues values = new ContentValues();
-                    values.put(EventContract.EventEntry.EVENT_TITLE, cursor.getString(0));
-                    values.put(EventContract.EventEntry.EVENT_DESCRIPTION, cursor.getString(1));
-                    values.put(EventContract.EventEntry.EVENT_DATE, cursor.getLong(2));
-                    values.put(EventContract.EventEntry.LOCATION, cursor.getString(3));
-
-                    Uri insertUri = contentResolver.insert(EventContract.EventEntry.CONTENT_URI, values);
-                    if (insertUri != null) {
-                        Log.v("Refresh Database: ", insertUri.toString() + "\n\n");
-                    }
+                Uri insertUri = contentResolver.insert(EventContract.EventEntry.CONTENT_URI, values);
+                if (insertUri != null) {
+                    Log.v("Refresh Database: ", insertUri.toString() + "\n\n");
                 }
-                cursor.close();
-            } else {
-                Log.v("Cursor check Calendar: ", "Empty cursor from calendar");
             }
+            cursor.close();
+        } else {
+            Log.v("Cursor check Calendar: ", "Empty cursor from calendar");
         }
+        Log.v("Position: ", "Running directly");
         String[] projection = new String[]{EventContract.EventEntry.EVENT_TITLE, EventContract.EventEntry.EVENT_DESCRIPTION, EventContract.EventEntry.LOCATION};
         return new CursorLoader(this, EventContract.EventEntry.CONTENT_URI, projection, null, null, null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.v("Cursor on Load: ", "" + data.getCount());
         adapter.setCursor(data);
     }
 

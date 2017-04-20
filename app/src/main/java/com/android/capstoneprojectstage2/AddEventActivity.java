@@ -100,6 +100,7 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
                     values.put(Events.CALENDAR_ID, calendarId);
                     values.put(Events.EVENT_TIMEZONE, String.valueOf(TimeZone.getDefault().getID()));
                     values.put(Events.EVENT_LOCATION, String.valueOf(result));
+                    values.put(Events.CALENDAR_ID, 3);
                     values.put(Events.RRULE, "FREQ=YEARLY;");
                     values.put(Events.ALL_DAY, 1);
                     addEvent();
@@ -171,6 +172,7 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
                     MY_PERMISSIONS_REQUEST_WRITE_CALENDAR);
             return;
         }
+
         Uri resultantUri = cr.insert(Events.CONTENT_URI, values);
         if (resultantUri != null) {
             Log.i(AddEventActivity.class.getSimpleName(), resultantUri.toString());
