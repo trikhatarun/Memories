@@ -17,6 +17,7 @@
     <string name="noInternetError">Check Internet Connectivity</string>
     <string name="empty_title_error">Please enter the title</string>
     <string name="event_add_success">Event added successfully</string>
+    <string name="empty_list">No Events for today.</string>
 
     <string-array name="category_array">
         <item>Birthday</item>

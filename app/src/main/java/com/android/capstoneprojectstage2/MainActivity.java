@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -185,6 +186,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void loadData() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{android.Manifest.permission.READ_CALENDAR},
+                    MY_PERMISSIONS_REQUEST_READ_CALENDAR);
+            return;
+        }
         getSupportLoaderManager().initLoader(LOADER_ID, null, this);
     }
 
@@ -227,10 +234,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         long startMillis, endMillis;
         Calendar beginTime = Calendar.getInstance();
-        beginTime.set(iYear, iMonth, iDay);
+        beginTime.set(iYear, iMonth, iDay, 0, 0, 1);
         startMillis = beginTime.getTimeInMillis();
         Calendar endTime = Calendar.getInstance();
-        endTime.set(iYear, iMonth, iDay);
+        endTime.set(iYear, iMonth, iDay, 23, 59, 59);
         endMillis = endTime.getTimeInMillis();
         Cursor cursor = CalendarContract.Instances.query(contentResolver, null, startMillis, endMillis);
         if (cursor != null) {
