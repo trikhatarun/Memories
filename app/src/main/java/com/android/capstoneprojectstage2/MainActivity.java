@@ -113,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 final FirebaseUser user = firebaseAuth.getCurrentUser();
+                //Todo: Bypass here to jump authentication
                 if (user != null) {
                     setContentView(R.layout.activity_main);
                     ButterKnife.bind(MainActivity.this);
