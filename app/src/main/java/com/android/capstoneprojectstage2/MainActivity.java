@@ -1,5 +1,7 @@
 package com.android.capstoneprojectstage2;
 
+import android.Manifest;
+import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -24,6 +26,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.android.capstoneprojectstage2.background.EventFetchingJobDispatcher;
+import com.android.capstoneprojectstage2.background.GeofenceTransitionsIntentService;
 import com.android.capstoneprojectstage2.data.EventContract;
 import com.firebase.jobdispatcher.FirebaseJobDispatcher;
 import com.firebase.jobdispatcher.GooglePlayDriver;
@@ -34,8 +37,14 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -44,17 +53,19 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, GoogleApiClient.ConnectionCallbacks, ResultCallback<Status>, GoogleApiClient.OnConnectionFailedListener {
 
+    public static final int RETURNING_FROM_ADD_ACTIVITY = 122;
+    public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
     private final int RC_SIGN_IN = 110;
-    private final int MY_PERMISSIONS_REQUEST_READ_CALENDAR = 117;
-    private final int RETURNING_FROM_ADD_ACTIVITY = 122;
     @BindView(android.R.id.content)
     View parentLayout;
     @Nullable
@@ -71,9 +82,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     RecyclerView eventsList;
     int LOADER_ID;
     private GoogleApiClient googleApiClient;
+    private PendingIntent mGeofencePendingIntent;
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
     private EventsAdapter adapter;
+    private ArrayList<Geofence> mGeofenceList;
+    private GoogleApiClient mGoogleApiClient;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,8 +100,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, googleSignInOptions)
                 .build();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
 
         adapter = new EventsAdapter(this);
+
+        mGeofencePendingIntent = null;
+        mGeofenceList = new ArrayList<>();
 
         loadData();
 
@@ -108,12 +130,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         dispatcher.mustSchedule(refreshDatabase);
 
         firebaseAuth = FirebaseAuth.getInstance();
-
         authStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 final FirebaseUser user = firebaseAuth.getCurrentUser();
-                //Todo: Bypass here to jump authentication
                 if (user != null) {
                     setContentView(R.layout.activity_main);
                     ButterKnife.bind(MainActivity.this);
@@ -122,7 +142,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     toolbar.setTitle(getString(R.string.app_name));
 
                     if (eventsList != null) {
-                        Log.v("RecyclerView: ", "Adapter  set h");
                         eventsList.setLayoutManager(new LinearLayoutManager(MainActivity.this));
                         eventsList.setAdapter(adapter);
                     }
@@ -132,7 +151,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         @Override
                         public void onClick(View v) {
                             Intent addEventIntent = new Intent(MainActivity.this, AddEventActivity.class);
-                            addEventIntent.putExtra("userEmail", user.getEmail());
                             startActivityForResult(addEventIntent, RETURNING_FROM_ADD_ACTIVITY);
                         }
                     });
@@ -152,7 +170,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 }
             }
         };
-
     }
 
     @Override
@@ -166,7 +183,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
             }
-        } else {
+        } else if (requestCode == RETURNING_FROM_ADD_ACTIVITY) {
+            if (resultCode == RESULT_OK) {
+                mGeofenceList.add((Geofence) data.getParcelableExtra(getString(R.string.geoObjectKey)));
+
+                try {
+                    LocationServices.GeofencingApi.addGeofences(
+                            mGoogleApiClient,
+                            getGeofencingRequest(),
+                            getGeofencePendingIntent()
+                    ).setResultCallback(this); // Result processed in onResult().
+                } catch (SecurityException securityException) {
+                    Log.e("Main Activity: ", securityException.toString());
+                }
+            }
             getSupportLoaderManager().restartLoader(LOADER_ID, null, this);
         }
     }
@@ -175,10 +205,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_READ_CALENDAR: {
+            case REQUEST_ID_MULTIPLE_PERMISSIONS: {
                 // If request is cancelled, the result arrays are empty.
                 if ((grantResults.length > 0)
-                        && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                        && (grantResults[0] == PackageManager.PERMISSION_GRANTED) && (grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
                     loadData();
                 }
             }
@@ -187,17 +217,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void loadData() {
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{android.Manifest.permission.READ_CALENDAR},
-                    MY_PERMISSIONS_REQUEST_READ_CALENDAR);
-            return;
+        Boolean permissionsResult = checkAndRequestPermissions();
+        if (permissionsResult) {
+
+            Log.v("Permissions Result: ", permissionsResult.toString());
+            getSupportLoaderManager().initLoader(LOADER_ID, null, this);
         }
-        getSupportLoaderManager().initLoader(LOADER_ID, null, this);
+
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount account) {
-        Log.v("Main activity", "firebaseAuthWithGoogle:" + account.getId());
         AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
@@ -225,7 +254,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.v("Loader: ", "Loader started");
         ContentResolver contentResolver = getContentResolver();
         contentResolver.delete(EventContract.EventEntry.CONTENT_URI, null, null);
         Calendar cc = Calendar.getInstance();
@@ -240,11 +268,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Calendar endTime = Calendar.getInstance();
         endTime.set(iYear, iMonth, iDay, 23, 59, 59);
         endMillis = endTime.getTimeInMillis();
+
         Cursor cursor = CalendarContract.Instances.query(contentResolver, null, startMillis, endMillis);
         if (cursor != null) {
-            Log.v("Cursor check Calendar: ", "Valued cursor from calendar with count = " + cursor.getCount());
             cursor.moveToFirst();
-            Log.v("Cursor first element: ", cursor.toString());
             for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
                 ContentValues values = new ContentValues();
                 values.put(EventContract.EventEntry.EVENT_TITLE, cursor.getString(cursor.getColumnIndex(CalendarContract.Events.TITLE)));
@@ -275,5 +302,78 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         adapter.setCursor(null);
+    }
+
+    private boolean checkAndRequestPermissions() {
+
+        int readCalendar = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR);
+        int writeCalendar = ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR);
+        int loc = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+
+        Log.v("Position", "" + readCalendar + writeCalendar + loc);
+        List<String> listPermissionsNeeded = new ArrayList<>();
+
+        if (readCalendar != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.READ_CALENDAR);
+        }
+        if (writeCalendar != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.WRITE_CALENDAR);
+        }
+        if (loc != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+        if (!listPermissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray
+                    (new String[listPermissionsNeeded.size()]), REQUEST_ID_MULTIPLE_PERMISSIONS);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.i("Main Activity: ", getString(R.string.connection_completed));
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onResult(@NonNull Status status) {
+        Log.v("Result: ", status.toString());
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    public PendingIntent getGeofencePendingIntent() {
+        // Reuse the PendingIntent if we already have it.
+        if (mGeofencePendingIntent != null) {
+            return mGeofencePendingIntent;
+        }
+        Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
+        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
+        // addGeofences() and removeGeofences().
+        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    public GeofencingRequest getGeofencingRequest() {
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+
+        // The INITIAL_TRIGGER_ENTER flag indicates that geofencing service should trigger a
+        // GEOFENCE_TRANSITION_ENTER notification when the geofence is added and if the device
+        // is already inside that geofence.
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+
+        // Add the geofences to be monitored by geofencing service.
+
+        builder.addGeofences(mGeofenceList);
+
+        // Return a GeofencingRequest.
+        return builder.build();
     }
 }

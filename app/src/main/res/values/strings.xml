@@ -18,6 +18,17 @@
     <string name="empty_title_error">Please enter the title</string>
     <string name="event_add_success">Event added successfully</string>
     <string name="empty_list">No Events for today.</string>
+    <string name="location_compulsory">Location permission is required to add address</string>
+    <string name="geofence_transition_entered">Entered</string>
+    <string name="unknown_geofence_transition">Unknown Transition</string>
+    <string name="geofence_transition_notification_text">You were here to celebrate %s.</string>
+    <string name="geofence_not_available">Geofence service is not available now</string>
+    <string name="geofence_too_many_geofences">Your app has registered too many geofences</string>
+    <string name="geofence_too_many_pending_intents">You have provided too many PendingIntents to the addGeofences() call</string>
+    <string name="unknown_geofence_error">Unknown error: the Geofence service is not available now</string>
+    <string name="geofence_transition_invalid_type">Geofence transition error: invalid transition type %1$d</string>
+    <string name="connection_completed">Geo Api completed</string>
+    <string name="geoObjectKey">geoObject</string>
 
     <string-array name="category_array">
         <item>Birthday</item>

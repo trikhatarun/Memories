@@ -2,13 +2,16 @@ package com.android.capstoneprojectstage2;
 
 import android.Manifest;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.CalendarContract.Events;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -26,6 +29,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -58,6 +62,8 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
     private StringBuilder result;
     private ContentResolver cr;
     private ContentValues values;
+
+    private Location lastLocation;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -115,11 +121,32 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
         LocationRequest locationRequestInstance = LocationRequest.create();
         locationRequestInstance.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Snackbar.make(locationTextField, getString(R.string.ask_location_string), Snackbar.LENGTH_LONG);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Location Permission Required", Toast.LENGTH_SHORT).show();
             return;
         }
-        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClientInstance, locationRequestInstance, AddEventActivity.this);
+        lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClientInstance);
+        if (lastLocation != null) {
+            result = new StringBuilder();
+            try {
+                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                List<Address> addresses = geocoder.getFromLocation(lastLocation.getLatitude(), lastLocation.getLongitude(), 1);
+                if (addresses.size() > 0) {
+                    Address address = addresses.get(0);
+                    result.append(address.getAddressLine(0));
+                    result.append(", ");
+                    result.append(address.getAddressLine(1));
+                    result.append(", ");
+                    result.append(address.getLocality()).append("\n");
+                    result.append(address.getCountryName());
+                }
+                locationTextField.setText(result);
+            } catch (IOException e) {
+                Log.e("tag", e.getMessage());
+            }
+        } else {
+            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClientInstance, locationRequestInstance, AddEventActivity.this);
+        }
     }
 
     @Override
@@ -134,6 +161,7 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
 
     @Override
     public void onLocationChanged(Location location) {
+        lastLocation = location;
         result = new StringBuilder();
         try {
             Geocoder geocoder = new Geocoder(this, Locale.getDefault());
@@ -177,9 +205,20 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
         if (resultantUri != null) {
             Log.i(AddEventActivity.class.getSimpleName(), resultantUri.toString());
             Toast.makeText(this, getString(R.string.event_add_success), Toast.LENGTH_SHORT).show();
+
+            Geofence geofenceObject = new Geofence.Builder()
+                    .setRequestId(String.valueOf(ContentUris.parseId(resultantUri)))
+                    .setCircularRegion(lastLocation.getLatitude(), lastLocation.getLongitude(), Constants.GEOFENCE_RADIUS_IN_METERS)
+                    .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+                    .build();
+            Intent data = new Intent();
+            data.putExtra(getString(R.string.geoObjectKey), (Parcelable) geofenceObject);
+            setResult(RESULT_OK, data);
             finish();
         }
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
