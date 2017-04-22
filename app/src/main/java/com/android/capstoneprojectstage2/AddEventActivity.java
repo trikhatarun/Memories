@@ -60,7 +60,7 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
     TextView locationTextField;
     private GoogleApiClient googleApiClientInstance;
     private StringBuilder result;
-    private ContentResolver cr;
+
     private ContentValues values;
 
     private Location lastLocation;
@@ -71,8 +71,6 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
         setContentView(R.layout.add_event_layout);
 
         ButterKnife.bind(this);
-
-        cr = getContentResolver();
 
         googleApiClientInstance = new GoogleApiClient.Builder(AddEventActivity.this)
                 .addApi(LocationServices.API)
@@ -200,7 +198,7 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
                     MY_PERMISSIONS_REQUEST_WRITE_CALENDAR);
             return;
         }
-
+        ContentResolver cr = getContentResolver();
         Uri resultantUri = cr.insert(Events.CONTENT_URI, values);
         if (resultantUri != null) {
             Log.i(AddEventActivity.class.getSimpleName(), resultantUri.toString());

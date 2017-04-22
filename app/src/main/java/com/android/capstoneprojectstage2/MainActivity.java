@@ -242,6 +242,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onStart() {
         super.onStart();
         firebaseAuth.addAuthStateListener(authStateListener);
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -250,6 +251,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if (authStateListener != null) {
             firebaseAuth.removeAuthStateListener(authStateListener);
         }
+        mGoogleApiClient.disconnect();
     }
 
     @Override
