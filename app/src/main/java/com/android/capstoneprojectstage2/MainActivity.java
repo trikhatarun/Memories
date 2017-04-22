@@ -311,7 +311,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Log.v("Cursor on Load: ", "" + data.getCount());
         dataCount = data.getCount();
         if (dataCount > 0) {
-            emptyView.setVisibility(View.GONE);
+            if (emptyView != null) {
+                emptyView.setVisibility(View.GONE);
+            }
         }
         adapter.setCursor(data);
     }
