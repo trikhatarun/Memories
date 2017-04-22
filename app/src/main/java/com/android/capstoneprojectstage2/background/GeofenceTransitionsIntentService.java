@@ -97,6 +97,7 @@ public class GeofenceTransitionsIntentService extends IntentService {
             Uri uri = uriBuilder.build();
             Cursor cursor = cr.query(uri, new String[]{CalendarContract.Events.TITLE, CalendarContract.Events.DESCRIPTION}, null, null, null);
             if (cursor != null) {
+                cursor.moveToFirst();
                 eventTitle = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.TITLE));
                 eventDescription = cursor.getString(cursor.getColumnIndex(CalendarContract.Events.DESCRIPTION));
                 cursor.close();

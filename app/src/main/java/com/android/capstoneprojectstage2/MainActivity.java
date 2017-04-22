@@ -251,8 +251,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onDestroy() {
+        super.onDestroy();
         if (authStateListener != null) {
             firebaseAuth.removeAuthStateListener(authStateListener);
         }
