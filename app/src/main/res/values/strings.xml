@@ -29,6 +29,8 @@
     <string name="geofence_transition_invalid_type">Geofence transition error: invalid transition type %1$d</string>
     <string name="connection_completed">Geo Api completed</string>
     <string name="geoObjectKey">geoObject</string>
+    <string name="last_year">Celebrated at</string>
+    <string name="imageViewDescription">This is image view which changes to represent event type</string>
 
     <string-array name="category_array">
         <item>Birthday</item>

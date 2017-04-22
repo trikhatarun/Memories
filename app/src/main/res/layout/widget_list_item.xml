@@ -8,6 +8,7 @@
         android:id="@+id/widget_event_logo"
         android:layout_width="48dp"
         android:layout_height="48dp"
+        android:contentDescription="@string/imageViewDescription"
         android:src="@drawable/ic_cake" />
 
     <LinearLayout

@@ -229,7 +229,6 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
                     addEvent();
                 }
             }
-
         }
     }
 

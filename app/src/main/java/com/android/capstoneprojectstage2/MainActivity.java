@@ -24,6 +24,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.android.capstoneprojectstage2.background.EventFetchingJobDispatcher;
 import com.android.capstoneprojectstage2.background.GeofenceTransitionsIntentService;
@@ -80,7 +81,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Nullable
     @BindView(R.id.events_list)
     RecyclerView eventsList;
+    @BindView(R.id.empty_view)
+    TextView emptyView;
+
     int LOADER_ID;
+    int dataCount = 0;
     private GoogleApiClient googleApiClient;
     private PendingIntent mGeofencePendingIntent;
     private FirebaseAuth firebaseAuth;
@@ -220,6 +225,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Boolean permissionsResult = checkAndRequestPermissions();
         if (permissionsResult) {
 
+
             Log.v("Permissions Result: ", permissionsResult.toString());
             getSupportLoaderManager().initLoader(LOADER_ID, null, this);
         }
@@ -295,7 +301,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         } else {
             Log.v("Cursor check Calendar: ", "Empty cursor from calendar");
         }
-        Log.v("Position: ", "Running directly");
         String[] projection = new String[]{EventContract.EventEntry.EVENT_TITLE, EventContract.EventEntry.EVENT_DESCRIPTION, EventContract.EventEntry.LOCATION};
         return new CursorLoader(this, EventContract.EventEntry.CONTENT_URI, projection, null, null, null);
     }
@@ -303,6 +308,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         Log.v("Cursor on Load: ", "" + data.getCount());
+        dataCount = data.getCount();
+        if (dataCount > 0) {
+            emptyView.setVisibility(View.GONE);
+        }
         adapter.setCursor(data);
     }
 

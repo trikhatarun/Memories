@@ -10,23 +10,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.capstoneprojectstage2.data.EventContract;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.OnMapReadyCallback;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
-import static com.android.capstoneprojectstage2.R.id.mapView;
 
 /**
  * Created by trikh on 20-04-2017.
  */
 
-class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewHolder> implements OnMapReadyCallback {
+class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewHolder> {
     private Cursor cursor;
     private Context context;
-    private GoogleMap map;
 
     EventsAdapter(Context context) {
         this.context = context;
@@ -45,12 +39,17 @@ class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewHolder> 
         holder.title.setText(cursor.getString(cursor.getColumnIndex(EventContract.EventEntry.EVENT_TITLE)));
         String descriptionText = cursor.getString(cursor.getColumnIndex(EventContract.EventEntry.EVENT_DESCRIPTION));
         holder.description.setText(descriptionText);
-        if (descriptionText.equals("Birthday")) {
-            holder.logo.setImageResource(R.drawable.ic_cake);
-        } else if (descriptionText.equals("Anniversary")) {
-            holder.logo.setImageResource(R.drawable.anniversary);
-        } else {
-            holder.logo.setImageResource(R.drawable.ic_event);
+        holder.lastYearLocation.setText(cursor.getString(cursor.getColumnIndex(EventContract.EventEntry.LOCATION)));
+        switch (descriptionText) {
+            case "Birthday":
+                holder.logo.setImageResource(R.drawable.ic_cake);
+                break;
+            case "Anniversary":
+                holder.logo.setImageResource(R.drawable.anniversary);
+                break;
+            default:
+                holder.logo.setImageResource(R.drawable.ic_event);
+                break;
         }
 
 
@@ -70,11 +69,6 @@ class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewHolder> 
         return count;
     }
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-
-    }
-
     class EventViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.event_logo)
         ImageView logo;
@@ -82,8 +76,8 @@ class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewHolder> 
         TextView title;
         @BindView(R.id.occasion_type)
         TextView description;
-        @BindView(mapView)
-        MapView mapview;
+        @BindView(R.id.lastYearLocation)
+        TextView lastYearLocation;
 
 
         EventViewHolder(View itemView) {
