@@ -242,6 +242,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onStart() {
         super.onStart();
         firebaseAuth.addAuthStateListener(authStateListener);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         mGoogleApiClient.connect();
     }
 

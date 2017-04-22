@@ -210,7 +210,7 @@ public class AddEventActivity extends AppCompatActivity implements GoogleApiClie
                     .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
                     .build();
-            Intent data = new Intent();
+            Intent data = new Intent(this, MainActivity.class);
             data.putExtra(getString(R.string.geoObjectKey), (Parcelable) geofenceObject);
             setResult(RESULT_OK, data);
             finish();
