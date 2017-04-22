@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1008563246317",
+    "firebase_url": "https://memories-a69fa.firebaseio.com",
+    "project_id": "memories-a69fa",
+    "storage_bucket": "memories-a69fa.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1008563246317:android:53d2cbe9eabb8909",
+        "android_client_info": {
+          "package_name": "com.android.capstoneprojectstage2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1008563246317-nm04c69o5mmqjfmfcl3613gh73suaps3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.android.capstoneprojectstage2",
+            "certificate_hash": "3d14b822b89c3f03dd74439fa332d9a058e46253"
+          }
+        },
+        {
+          "client_id": "1008563246317-p1f937f62knh16nu8vi8ea857c92dp8o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANIz2LK-KMSCw-tg8HSB4ttQl_t1nG8G0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1008563246317-p1f937f62knh16nu8vi8ea857c92dp8o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
