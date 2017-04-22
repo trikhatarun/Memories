@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Nullable
     @BindView(R.id.events_list)
     RecyclerView eventsList;
+    @Nullable
     @BindView(R.id.empty_view)
     TextView emptyView;
 
