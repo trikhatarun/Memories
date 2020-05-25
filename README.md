@@ -1,3 +1,5 @@
 # Memories
 
-This project is regarding the final roject for android nanodegree at udacity
+An app which reminds you of the pleasant memories you had when you are in/near the place where that memory occured.
+
+
